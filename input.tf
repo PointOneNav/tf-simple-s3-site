@@ -28,3 +28,28 @@ variable "redirect_404_spa" {
   description = "When true, 403 and 404 errors return 200 with /index.html to support SPA client-side routing"
   default     = false
 }
+
+variable "create_iam_user" {
+  description = "Whether to create an IAM user with a static access key for CI/CD deployments"
+  type        = bool
+  default     = true
+}
+
+variable "github_actions_deploy" {
+  description = <<-EOT
+    When set, creates an IAM role assumable by GitHub Actions via OIDC federation.
+
+    Format for allowed_repos: "org/repo", e.g. ["my-org/my-site"].
+    Format for allowed_branches: "refs/heads/<pattern>", supports wildcards, e.g. ["refs/heads/main", "refs/heads/release/*"].
+    Format for allowed_environments: plain GitHub environment names, e.g. ["production"].
+
+    When neither allowed_branches nor allowed_environments is set, the trust is open
+    to all refs and environments within the configured repos.
+  EOT
+  type = object({
+    allowed_repos        = list(string)
+    allowed_branches     = optional(list(string))
+    allowed_environments = optional(list(string))
+  })
+  default = null
+}

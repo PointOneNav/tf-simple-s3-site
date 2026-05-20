@@ -28,6 +28,8 @@ development practices.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_bucket"></a> [bucket](#input\_bucket) | Name of the S3 bucket used for static site hosting | `string` | n/a | yes |
+| <a name="input_create_iam_user"></a> [create\_iam\_user](#input\_create\_iam\_user) | Whether to create an IAM user with a static access key for CI/CD deployments | `bool` | `true` | no |
+| <a name="input_github_actions_deploy"></a> [github\_actions\_deploy](#input\_github\_actions\_deploy) | When set, creates an IAM role assumable by GitHub Actions via OIDC federation.<br/><br/>Format for allowed\_repos: "org/repo", e.g. ["my-org/my-site"].<br/>Format for allowed\_branches: "refs/heads/<pattern>", supports wildcards, e.g. ["refs/heads/main", "refs/heads/release/*"].<br/>Format for allowed\_environments: plain GitHub environment names, e.g. ["production"].<br/><br/>When neither allowed\_branches nor allowed\_environments is set, the trust is open<br/>to all refs and environments within the configured repos. | <pre>object({<br/>    allowed_repos        = list(string)<br/>    allowed_branches     = optional(list(string))<br/>    allowed_environments = optional(list(string))<br/>  })</pre> | `null` | no |
 | <a name="input_hosted_zone"></a> [hosted\_zone](#input\_hosted\_zone) | Route53 hosted zone name for DNS records and certificate validation | `string` | n/a | yes |
 | <a name="input_hostnames"></a> [hostnames](#input\_hostnames) | DNS hostnames for the CloudFront distribution. The first entry is used as the primary ACM certificate domain; additional entries become Subject Alternative Names | `list(string)` | n/a | yes |
 | <a name="input_redirect_404_spa"></a> [redirect\_404\_spa](#input\_redirect\_404\_spa) | When true, 403 and 404 errors return 200 with /index.html to support SPA client-side routing | `bool` | `false` | no |
@@ -38,6 +40,7 @@ development practices.
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_deployer"></a> [deployer](#output\_deployer) | IAM access key and secret for CI/CD deployments to the S3 bucket |
+| <a name="output_github_actions_role"></a> [github\_actions\_role](#output\_github\_actions\_role) | IAM role ARN for GitHub Actions OIDC deployments |
 <!-- END_TF_DOCS -->
 
 > **Note**: You'll need to configure an AWS provider to specifically run in `us-east-1` for the certificate (required by [CloudFront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cnames-and-https-requirements.html)). Hosted zone must exist in Route 53.

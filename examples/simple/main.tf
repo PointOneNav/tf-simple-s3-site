@@ -19,6 +19,9 @@ module "simple_site" {
   hostnames   = var.hostnames
   tags        = var.tags
 
+  create_iam_user       = var.create_iam_user
+  github_actions_deploy = var.github_actions_deploy
+
   providers = {
     aws.us_east_1 = aws.us_east_1
   }

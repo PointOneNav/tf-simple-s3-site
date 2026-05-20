@@ -26,13 +26,14 @@ No lint, test, or codegen commands — this is a pure module.
 
 ## Module structure
 
-- `input.tf` — 5 variables: `bucket`, `hosted_zone`, `hostnames`, `tags`, `redirect_404_spa`
-- `outputs.tf` — single sensitive output `deployer` with `access_key` + `secret`
+- `input.tf` — 7 variables: `bucket`, `hosted_zone`, `hostnames`, `tags`, `redirect_404_spa`, `create_iam_user`, `github_actions_deploy`
+- `outputs.tf` — `deployer` (access key, sensitive) and `github_actions_role` (role ARN)
 - `bucket.tf` — S3 bucket + website config + bucket policy (CloudFront OAC)
 - `cloudfront.tf` — CloudFront distribution, OAC, CloudFront Function (redirect)
 - `certificates.tf` — ACM cert (provider `aws.us_east_1`)
 - `dns.tf` — Route53 zone lookup, validation records, A/AAAA alias records
-- `deployer.tf` — IAM user + access key + S3 write policy
+- `iam_user.tf` — IAM user + access key + S3 write policy
+- `github_actions.tf` — GitHub OIDC provider data, IAM role + trust policy + S3 write policy
 - `redirect.js` — CloudFront Function (runtime `cloudfront-js-2.0`) that rewrites `/`-ending URIs to `index.html`
 
 ## Key quirks
@@ -47,3 +48,12 @@ No lint, test, or codegen commands — this is a pure module.
 - `hosted_zone` must exist in Route53.
 - CloudFront uses **Origin Access Control (OAC)** (not OAI).
 - Deployer IAM user gets `s3:ListBucket` + `s3:*Object` — intended for CI/CD.
+- `create_iam_user` (default `true`): toggle to skip the IAM user + access key.
+- `github_actions_deploy` (default `null`): when set, creates an IAM role with OIDC trust
+  for GitHub Actions. Expects the GitHub OIDC provider (`token.actions.githubusercontent.com`)
+  to already exist in the account. The `sub` condition is open to all refs/environments
+  when neither `allowed_branches` nor `allowed_environments` is specified.
+  - `allowed_repos` — list of `"org/repo"` strings, e.g. `["my-org/my-site"]`
+  - `allowed_branches` — optional, `"refs/heads/<pattern>"` with `*` wildcard support, e.g. `["refs/heads/main"]`
+  - `allowed_environments` — optional, plain GitHub environment names, e.g. `["production", "staging"]`
+- Deployer IAM user and GitHub Actions role can coexist or be toggled independently.
