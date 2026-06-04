@@ -14,7 +14,10 @@ jobs:
 
       - run: tofu fmt -check -recursive
 
-      - run: tofu -chdir=examples/simple init && tofu -chdir=examples/simple validate
+      - run: |
+          for ex in examples/simple examples/unmanaged-dns; do
+            tofu -chdir="$ex" init -backend=false && tofu -chdir="$ex" validate
+          done
 
       - uses: terraform-docs/gh-actions@v1
         with:

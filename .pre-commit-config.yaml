@@ -14,3 +14,12 @@ repos:
     hooks:
       - id: checkov
         args: [--compact, --framework, terraform]
+  - repo: local
+    hooks:
+      - id: tofu-validate-examples
+        name: Tofu validate all examples
+        description: Runs tofu validate on both example configurations to catch type-inconsistency errors
+        language: system
+        entry: bash -c 'for ex in examples/simple examples/unmanaged-dns; do tofu -chdir="$ex" init -backend=false && tofu -chdir="$ex" validate; done'
+        pass_filenames: false
+        files: \.tf$

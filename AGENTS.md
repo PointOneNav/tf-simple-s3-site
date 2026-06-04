@@ -14,20 +14,31 @@ OpenTofu/Terraform module for a static S3 site fronted by CloudFront.
 tofu init                                   # first use or after adding providers
 tofu validate                               # validate root module (fails — needs alias)
 tofu -chdir=examples/simple init && \
-  tofu -chdir=examples/simple validate      # validate module via example
+  tofu -chdir=examples/simple validate      # validate module via simple example
+tofu -chdir=examples/unmanaged-dns init && \
+  tofu -chdir=examples/unmanaged-dns validate   # validate unmanaged-dns code path
 tofu plan                                   # dry-run
 tofu apply                                  # deploy
 ```
 
 The root module cannot be validated standalone (requires `us_east_1` provider alias
-from a consumer). Always use `examples/simple` for validation instead.
+from a consumer). Always use `examples/*` for validation instead.
 
-No lint, test, or codegen commands — this is a pure module.
+**Pre-check both code paths:**
+
+```sh
+for ex in examples/simple examples/unmanaged-dns; do
+  tofu -chdir="$ex" init && tofu -chdir="$ex" validate
+done
+```
+
+This catches type-inconsistency errors (e.g. mismatched ternary branches in `for_each`)
+that `tofu validate` on a single example may miss, since these only surface at plan time.
 
 ## Module structure
 
-- `input.tf` — 7 variables: `bucket`, `hosted_zone`, `hostnames`, `tags`, `redirect_404_spa`, `create_iam_user`, `github_actions_deploy`
-- `outputs.tf` — `deployer` (access key, sensitive) and `github_actions_role` (role ARN)
+- `input.tf` — 8 variables: `bucket`, `hosted_zone`, `hostnames`, `tags`, `redirect_404_spa`, `create_iam_user`, `github_actions_deploy`, `manage_route53_records`
+- `outputs.tf` — `cloudfront` (domain_name, hosted_zone_id), `acm_certificate` (arn, domain_validation_options), `deployer` (access key, sensitive), and `github_actions_role` (role ARN)
 - `bucket.tf` — S3 bucket + website config + bucket policy (CloudFront OAC)
 - `cloudfront.tf` — CloudFront distribution, OAC, CloudFront Function (redirect)
 - `certificates.tf` — ACM cert (provider `aws.us_east_1`)
@@ -45,7 +56,8 @@ No lint, test, or codegen commands — this is a pure module.
 - `redirect_404_spa` (default `false`): when `true`, 403 and 404 errors return
   `200` with `/index.html` body. Enable this for SPA client-side routing.
 - `hostnames[0]` is used for cert domain; all entries are CloudFront aliases.
-- `hosted_zone` must exist in Route53.
+- `hosted_zone` must exist in Route53. Required only when `manage_route53_records` is `true`.
+- `manage_route53_records` (default `true`): when `false`, skips all Route53 resources (zone lookup, DNS validation records, A/AAAA aliases). Use `cloudfront` and `acm_certificate` outputs to manage DNS and cert validation externally.
 - CloudFront uses **Origin Access Control (OAC)** (not OAI).
 - Deployer IAM user gets `s3:ListBucket` + `s3:*Object` — intended for CI/CD.
 - `create_iam_user` (default `true`): toggle to skip the IAM user + access key.
