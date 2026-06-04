@@ -5,7 +5,14 @@ variable "bucket" {
 
 variable "hosted_zone" {
   type        = string
-  description = "Route53 hosted zone name for DNS records and certificate validation"
+  description = "Route53 hosted zone name for DNS records and certificate validation. Required when manage_route53_records is true."
+  default     = null
+}
+
+variable "manage_route53_records" {
+  description = "When false, skip Route53 zone lookup, DNS validation records, and A/AAAA alias records. Manage DNS and certificate validation externally using the cloudfront and acm_certificate outputs."
+  type        = bool
+  default     = true
 }
 
 variable "hostnames" {

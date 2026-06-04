@@ -1,22 +1,30 @@
 data "aws_route53_zone" "hosted" {
-  name         = var.hosted_zone
+  count        = var.manage_route53_records ? 1 : 0
+  name         = var.manage_route53_records ? var.hosted_zone : ""
   private_zone = false
+
+  lifecycle {
+    precondition {
+      condition     = var.manage_route53_records ? var.hosted_zone != null : true
+      error_message = "hosted_zone must be set when manage_route53_records is true."
+    }
+  }
 }
 
 locals {
-  validation_records = {
+  validation_records = var.manage_route53_records ? {
     for dvo in aws_acm_certificate.hosting.domain_validation_options :
     dvo.domain_name => {
       name    = dvo.resource_record_name
       record  = dvo.resource_record_value
       type    = dvo.resource_record_type
-      zone_id = data.aws_route53_zone.hosted.zone_id
+      zone_id = data.aws_route53_zone.hosted[0].zone_id
     }
-  }
+  } : {}
 }
 
 resource "aws_route53_record" "validation" {
-  for_each = local.validation_records
+  for_each = var.manage_route53_records ? local.validation_records : {}
 
   allow_overwrite = true
   name            = each.value.name
@@ -27,10 +35,11 @@ resource "aws_route53_record" "validation" {
 }
 
 resource "aws_route53_record" "host_a" {
-  for_each        = toset(var.hostnames)
+  for_each = var.manage_route53_records ? toset(var.hostnames) : {}
+
   name            = each.value
   type            = "A"
-  zone_id         = data.aws_route53_zone.hosted.zone_id
+  zone_id         = data.aws_route53_zone.hosted[0].zone_id
   allow_overwrite = true
 
   alias {
@@ -41,10 +50,11 @@ resource "aws_route53_record" "host_a" {
 }
 
 resource "aws_route53_record" "host_aaaa" {
-  for_each        = toset(var.hostnames)
+  for_each = var.manage_route53_records ? toset(var.hostnames) : {}
+
   name            = each.value
   type            = "AAAA"
-  zone_id         = data.aws_route53_zone.hosted.zone_id
+  zone_id         = data.aws_route53_zone.hosted[0].zone_id
   allow_overwrite = true
 
   alias {
