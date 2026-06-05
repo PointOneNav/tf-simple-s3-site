@@ -17,6 +17,16 @@ data "aws_iam_policy_document" "deployer_s3_write" {
     actions   = ["s3:*Object"]
     resources = ["arn:aws:s3:::${aws_s3_bucket.storage.bucket}/*"]
   }
+  statement {
+    sid    = "CloudFrontCacheInvalidation"
+    effect = "Allow"
+    actions = [
+      "cloudfront:CreateInvalidation",
+      "cloudfront:GetInvalidation",
+      "cloudfront:ListInvalidations",
+    ]
+    resources = [aws_cloudfront_distribution.export.arn]
+  }
 }
 
 resource "aws_iam_user_policy" "deployer_s3_write" {
