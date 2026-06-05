@@ -41,7 +41,7 @@ development practices.
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_acm_certificate"></a> [acm\_certificate](#output\_acm\_certificate) | ACM certificate details including DNS validation options — use when managing DNS externally |
-| <a name="output_cloudfront"></a> [cloudfront](#output\_cloudfront) | CloudFront distribution domain name and hosted zone ID for external DNS alias records |
+| <a name="output_cloudfront"></a> [cloudfront](#output\_cloudfront) | CloudFront distribution domain name, hosted zone ID, ID, and ARN |
 | <a name="output_deployer"></a> [deployer](#output\_deployer) | IAM access key and secret for CI/CD deployments to the S3 bucket |
 | <a name="output_github_actions_role"></a> [github\_actions\_role](#output\_github\_actions\_role) | IAM role ARN for GitHub Actions OIDC deployments |
 <!-- END_TF_DOCS -->

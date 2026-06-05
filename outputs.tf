@@ -1,8 +1,10 @@
 output "cloudfront" {
-  description = "CloudFront distribution domain name and hosted zone ID for external DNS alias records"
+  description = "CloudFront distribution domain name, hosted zone ID, ID, and ARN"
   value = {
     domain_name    = aws_cloudfront_distribution.export.domain_name
     hosted_zone_id = aws_cloudfront_distribution.export.hosted_zone_id
+    id             = aws_cloudfront_distribution.export.id
+    arn            = aws_cloudfront_distribution.export.arn
   }
 }
 
