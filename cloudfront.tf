@@ -57,7 +57,7 @@ resource "aws_cloudfront_distribution" "export" {
 
   price_class = "PriceClass_100"
 
-  tags = var.tags
+  tags = merge(var.tags, { Name = var.bucket })
 
   restrictions {
     geo_restriction {
