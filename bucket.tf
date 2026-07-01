@@ -61,6 +61,11 @@ data "aws_iam_policy_document" "storage_cloudfront_access" {
       variable = "AWS:SourceArn"
       values   = [aws_cloudfront_distribution.export.arn]
     }
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["true"]
+    }
   }
 }
 
